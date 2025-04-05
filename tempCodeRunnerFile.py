@@ -1,0 +1,1 @@
+self.ui.pushButton.clicked.connect(self.startTask)
