@@ -10,6 +10,8 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from src.config import asset_path
+
 
 class Ui_jarvisUI(object):
     def setupUi(self, jarvisUI):
@@ -20,7 +22,7 @@ class Ui_jarvisUI(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(-10, 0, 811, 511))
         self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(r"D:\python automation\jarvis\bg.jpg"))
+        self.label.setPixmap(QtGui.QPixmap(asset_path("bg.jpg")))
         self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(160, 30, 471, 491))
@@ -28,7 +30,7 @@ class Ui_jarvisUI(object):
         font.setFamily("MS Outlook")
         self.label_2.setFont(font)
         self.label_2.setText("")
-        self.label_2.setPixmap(QtGui.QPixmap("D:\python automation\jarvis\circle.gif"))
+        self.label_2.setPixmap(QtGui.QPixmap(asset_path("circle.gif")))
         self.label_2.setObjectName("label_2")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(700, 460, 71, 31))
@@ -44,7 +46,7 @@ class Ui_jarvisUI(object):
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(0, 0, 421, 71))
         self.label_3.setText("")
-        self.label_3.setPixmap(QtGui.QPixmap("D:\python automation\jarvis\load.gif"))
+        self.label_3.setPixmap(QtGui.QPixmap(asset_path("load.gif")))
         self.label_3.setObjectName("label_3")
         jarvisUI.setCentralWidget(self.centralwidget)
 
