@@ -9,6 +9,10 @@ venv/
 env/
 .env/
 
+# Native SDK and Node tooling
+.native/
+node_modules/
+
 # Local secrets and environment files
 .env
 .env.*

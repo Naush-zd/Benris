@@ -4,15 +4,31 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
+scripts = { agentctl = "src.api.cli:main" }
 dependencies = [
 	"beautifulsoup4>=4.14.2",
+	"anthropic>=0.69.0",
 	"duckduckgo-search>=8.1.1",
+	"fastapi>=0.115.0",
 	"groq>=0.37.1",
 	"phidata>=2.7.10",
 	"pyaudio>=0.2.14",
 	"pyqt5>=5.15.11",
 	"pyttsx3>=2.99",
+	"python-dotenv>=1.1.1",
 	"requests>=2.32.5",
 	"speechrecognition>=3.14.3",
+	"uvicorn>=0.34.0",
+	"websockets>=14.0",
 	"wikipedia>=1.4.0",
 ]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

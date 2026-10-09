@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         self.ui.load_movie = QtGui.QMovie(asset_path("load.gif"))
         self.ui.label_3.setMovie(self.ui.load_movie)
         self.ui.load_movie.start()
-        if not self.worker.isRunning():
+        if not self.worker.is_alive():
             self.worker.start()
 
 
