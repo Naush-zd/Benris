@@ -31,7 +31,8 @@ body:
         - Voice / speech
         - Agent / models
         - System control tools
-        - Native cockpit UI
+        - Desktop UI (PyQt5)
+        - Web dashboard
         - Agent Runtime (API)
         - Other
     validations:
