@@ -1,0 +1,60 @@
+name: 🐛 Bug report
+description: Report something that isn't working as expected
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a bug! Please fill in as much as you can.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I said "...", Benris did "..." instead of "..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `uv run python jarvis.py`
+        2. Say "..."
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Voice / speech
+        - Agent / models
+        - System control tools
+        - Native cockpit UI
+        - Agent Runtime (API)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS: macOS 15.x
+        - Python: 3.13.x
+        - Model: Groq / Claude
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      render: shell

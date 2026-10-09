@@ -1,0 +1,38 @@
+name: 💡 Feature request
+description: Suggest an idea or improvement for Benris
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point, not just the solution.
+      placeholder: I want to be able to...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Voice / speech
+        - Agent / models
+        - System control tools
+        - Native cockpit UI
+        - Agent Runtime (API)
+        - Other
+    validations:
+      required: true
