@@ -15,7 +15,8 @@
 <!-- Describe how you verified your change. -->
 
 - [ ] App starts: `uv run python jarvis.py`
-- [ ] Native UI validates: `native check` and `native test` pass clean
+- [ ] Tests pass: `uv run pytest`
+- [ ] Web (if touched): `cd web && npm run lint` passes
 - [ ] Exercised the affected path manually
 
 ## Checklist

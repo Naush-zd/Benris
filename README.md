@@ -2,16 +2,17 @@
 
 # ⬡ BENRIS
 
-### A voice-driven AI assistant that actually controls your Mac — with a native cockpit UI.
+### A voice-driven AI assistant that actually controls your Mac — with a web dashboard to watch it work.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-00E0C7.svg?style=flat-square)](LICENSE)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000.svg?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-DE5FE9.svg?style=flat-square)](https://github.com/astral-sh/uv)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
 **Talk to it. It listens, thinks, and *does* — opens apps, plays music, searches the web, checks the weather, and answers back out loud.**
 
-[Features](#-features) · [Quick start](#-quick-start) · [Configuration](#-configuration) · [Agent Runtime](#-agent-runtime-mvp) · [Architecture](#-architecture) · [Contributing](#-contributing)
+[Features](#-features) · [Quick start](#-quick-start) · [Configuration](#-configuration) · [Agent Runtime](#-agent-runtime--web-dashboard) · [Architecture](#-architecture) · [Contributing](#-contributing)
 
 </div>
 
@@ -19,7 +20,12 @@
 
 ## ✦ What is Benris?
 
-Benris is a hands-free desktop assistant. Press run, speak, and it transcribes your voice, routes the request through a language model with real **system-control tools**, performs the action on your Mac, and speaks the result back. It ships with a **cinematic native cockpit UI** (built on the Native SDK — compiled to a real binary, no browser, no Electron) and a headless **agent runtime** with a live control plane for driving tasks programmatically.
+Benris is a hands-free desktop assistant. Press run, speak, and it transcribes your voice, routes the request through a language model with real **system-control tools**, performs the action on your Mac, and speaks the result back.
+
+It comes in two pieces that work together:
+
+- A **PyQt5 desktop app** + Python agent that runs the listen → think → act → speak loop.
+- A **FastAPI control plane** with a **Next.js web dashboard** to submit tasks, watch a live event stream, approve sensitive actions, and manage devices & policies.
 
 > ⚡ Dual-model brain: **Groq first for speed, Claude as the fallback for depth.**
 
@@ -34,15 +40,16 @@ Benris is a hands-free desktop assistant. Press run, speak, and it transcribes y
 | 🖥️ **Real system control** | Open sites & apps, play/pause music, change volume, close windows — not instructions, *actual* actions. |
 | 🔎 **Web + knowledge tools** | DuckDuckGo, Python execution, and live weather via Open-Meteo. |
 | 🌦️ **Live weather** | Ask for any city — geocoded and fetched on the fly, no API key needed. |
-| 🪟 **Native cockpit UI** | A frameless dark HUD: pulsing status orb, live audio waveform, role-styled conversation feed, glowing stat tiles. |
-| 🤖 **Agent Runtime MVP** | FastAPI control plane with pausable/approvable tasks and a live WebSocket event stream. |
+| 🪟 **Desktop UI** | A PyQt5 window with animated status while the assistant listens and works. |
+| 🌐 **Web dashboard** | Next.js app for activity, policies, devices, settings, and a hands-free voice mode. |
+| 🤖 **Agent Runtime** | FastAPI control plane with pausable/approvable tasks and a live WebSocket event stream. |
 | 🔐 **Policy engine** | Every sensitive action can be gated: allow / deny / require-approval. |
 
 ---
 
 ## ⚑ Quick start
 
-> **Requirements:** macOS, [`uv`](https://github.com/astral-sh/uv), Python 3.13+. (Microphone & speaker required for voice mode.)
+> **Requirements:** macOS, [`uv`](https://github.com/astral-sh/uv), Python 3.13+. (Microphone & speaker required for voice mode. Node 20+ for the web dashboard.)
 
 ```sh
 # 1. Clone
@@ -56,11 +63,11 @@ uv sync
 cp .env.example .env
 $EDITOR .env
 
-# 4. Talk to Benris
+# 4. Talk to Benris (desktop app)
 uv run python jarvis.py
 ```
 
-Then press **Run**, start speaking, and watch the conversation appear.
+Then press **Run**, start speaking, and watch Benris respond.
 
 ---
 
@@ -93,14 +100,26 @@ export BENRIS_VOICE_INDEX=139   # e.g. "Samantha" on this Mac
 
 ---
 
-## 🤖 Agent Runtime MVP
+## 🤖 Agent Runtime & web dashboard
 
-Beyond the voice UI, Benris exposes a local **control plane** for running agent tasks programmatically — with pause, resume, stop, and human-in-the-loop approval.
+Benris exposes a local **control plane** for running agent tasks programmatically — with pause, resume, stop, and human-in-the-loop approval — plus a Next.js dashboard on top of it.
+
+**Start the control plane:**
 
 ```sh
 uv run agentctl start           # defaults to 127.0.0.1:8000
 uv run agentctl start --host 0.0.0.0 --port 9000
 ```
+
+**Start the web dashboard** (in `web/`):
+
+```sh
+cd web
+npm install
+npm run dev                     # http://localhost:3000
+```
+
+The dashboard includes pages for **Activity**, **Policies**, **Devices**, **Settings**, and a hands-free **Voice mode**, all driven by the API below.
 
 ### HTTP API
 
@@ -136,26 +155,32 @@ websocat ws://127.0.0.1:8000/ws/events
 ## ◈ Architecture
 
 ```
-            ┌──────────────────────────┐        ┌──────────────────────────┐
-            │   Native Cockpit UI       │        │   Agent Runtime (API)     │
-            │  app.zon · core.ts        │        │  agentctl → FastAPI       │
-            │  app.native (dark HUD)    │        │  /tasks · /ws/events      │
-            └────────────┬─────────────┘        └────────────┬─────────────┘
-                         │ spawns & streams                   │
-                         │ stdout line prefixes               │ TaskManager
-                         ▼                                    ▼
-            ┌─────────────────────────────────────────────────────────────┐
-            │                    Benris Agent Core                          │
-            │   assistant.py  —  Groq → Claude fallback (phidata Agent)     │
-            │   tools: SystemControl · DuckDuckGo · Python · Weather        │
-            │   speech.py  —  listen() / speak()                            │
-            │   security/policy.py  —  allow / deny / approve               │
-            └─────────────────────────────────────────────────────────────┘
+   ┌──────────────────────────┐        ┌──────────────────────────┐
+   │   Desktop app (PyQt5)     │        │   Web dashboard (Next.js) │
+   │   jarvis.py → src/app.py  │        │   web/ · activity·policies │
+   │                           │        │   devices·settings·voice   │
+   └────────────┬─────────────┘        └────────────┬─────────────┘
+                │                                     │ HTTP + WebSocket
+                │                                     ▼
+                │                       ┌──────────────────────────┐
+                │                       │  Agent Runtime (FastAPI)  │
+                │                       │  agentctl · /tasks · /ws  │
+                │                       │  TaskManager · Sessions   │
+                │                       └────────────┬─────────────┘
+                ▼                                     ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │                    Benris Agent Core                          │
+   │   assistant.py  —  Groq → Claude fallback (phidata Agent)     │
+   │   tools: SystemControl · DuckDuckGo · Python · Weather        │
+   │   speech.py  —  listen() / speak()                            │
+   │   security/policy.py  —  allow / deny / approve               │
+   └─────────────────────────────────────────────────────────────┘
 ```
 
 | Path | Role |
 |------|------|
-| `jarvis.py` | Entry point. |
+| `jarvis.py` | Desktop entry point. |
+| `src/app.py` | PyQt5 window + wiring. |
 | `src/assistant.py` | Agent factory + Groq/Claude fallback + the listen→think→act→speak worker loop. |
 | `src/speech.py` | Microphone recognition and text-to-speech. |
 | `src/tools.py` | `SystemControlTools` — macOS actions the agent can call. |
@@ -165,18 +190,20 @@ websocat ws://127.0.0.1:8000/ws/events
 | `src/runtime/` | `TaskManager`, `TaskSession`, executor — pause/resume/approval state machine. |
 | `src/core/events.py` | Thread-safe event log + live subscriber queues. |
 | `src/security/policy.py` | Action policy engine (`allow` / `deny` / `require_approval`). |
-| `core.ts` · `app.native` · `app.zon` | Native SDK cockpit frontend. |
+| `web/` | Next.js dashboard (activity, policies, devices, settings, voice mode). |
+| `tests/` | Python test suite (`uv run pytest`). |
 
 ---
 
-## ⟡ The Native cockpit UI
-
-The frontend is authored for the [Native SDK](https://native-sdk.dev) — a TypeScript app core (`core.ts`) plus declarative markup (`app.native`), compiled ahead-of-time to a native binary (no JS runtime ships). It launches the Python backend and parses its streamed status lines (`TRANSCRIPT:`, `Assistant:`, `VOICE:`, `MICROPHONE:`, `Listening…`) into a live conversation feed, an animated waveform, and a pulsing status orb.
+## 🧪 Development
 
 ```sh
-native dev        # live-reload the cockpit UI
-native check      # typecheck the core + validate every binding
-native test       # build the model contract and run core tests
+uv sync                 # install Python dependencies
+uv run python jarvis.py # run the desktop app
+uv run agentctl start   # run the control plane
+uv run pytest           # run the test suite
+
+cd web && npm run dev   # run the web dashboard
 ```
 
 ---
@@ -184,10 +211,9 @@ native test       # build the model contract and run core tests
 ## ⚐ Roadmap
 
 - [ ] Browser, terminal, and file tools behind the policy engine
-- [ ] Wire the native cockpit directly to a headless backend (replace the legacy PyQt shell)
 - [ ] Streaming responses in the UI
 - [ ] Cross-platform system control (Linux / Windows)
-- [ ] A web dashboard for the agent runtime event stream
+- [ ] Richer live visualizations in the web dashboard
 
 See the [open issues](https://github.com/Naush-zd/Benris/issues) for the current list.
 
@@ -200,7 +226,7 @@ Contributions are welcome! Please read **[CONTRIBUTING.md](CONTRIBUTING.md)** an
 ```sh
 uv sync                 # install everything
 uv run python jarvis.py # run the app
-native check            # validate the native UI
+uv run pytest           # run the tests
 ```
 
 ---

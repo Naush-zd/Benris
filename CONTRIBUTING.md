@@ -14,22 +14,25 @@ request is genuinely appreciated.
 ## Development setup
 
 > Requirements: macOS, [`uv`](https://github.com/astral-sh/uv), Python 3.13+.
-> The native UI additionally needs the [Native SDK](https://native-sdk.dev) CLI.
+> Node 20+ is needed for the web dashboard in `web/`.
 
 ```sh
 git clone https://github.com/Naush-zd/Benris.git
 cd Benris
 uv sync                     # install dependencies
 cp .env.example .env        # add your keys
-uv run python jarvis.py     # run the assistant
+uv run python jarvis.py     # run the desktop app
+uv run agentctl start       # run the control plane
+uv run pytest               # run the test suite
 ```
 
-Working on the native cockpit UI:
+Working on the web dashboard:
 
 ```sh
-native check                # typecheck core.ts + validate every binding
-native test                 # build the model contract and run core tests
-native dev                  # live-reload the UI
+cd web
+npm install
+npm run dev                 # http://localhost:3000
+npm run lint
 ```
 
 ## Pull request workflow
@@ -38,8 +41,8 @@ native dev                  # live-reload the UI
    `git checkout -b feat/short-description`
 2. Make focused changes — keep each PR to one logical concern.
 3. **Validate** before pushing:
-   - Python: make sure the app still starts and your path is exercised.
-   - Native UI: `native check` and `native test` must pass clean (no warnings).
+   - Python: `uv run pytest`, and make sure the app still starts.
+   - Web: `cd web && npm run lint` passes.
 4. Write a clear commit message and PR description — what changed and *why*.
 5. Open the PR against `main` and link any related issue.
 
@@ -47,8 +50,7 @@ native dev                  # live-reload the UI
 
 - **Match the surrounding style** — naming, structure, and comment density.
 - **Python**: type hints, small focused functions, no secrets in code.
-- **Native core (`core.ts`)**: stay inside the app-core subset — derive values
-  in exported helpers rather than caching them in the model.
+- **Web (`web/`)**: Next.js + TypeScript; keep components focused and typed.
 - **Keep secrets out of git** — anything sensitive goes in `.env` (git-ignored).
 - Prefer the smallest change that correctly solves the problem.
 
